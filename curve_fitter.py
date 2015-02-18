@@ -87,11 +87,10 @@ def spawn_initial_population(n):
 def tournament_selection(pop):
     selected = []
     i = 0
-    while i <= TOURNAMENT_SIZE:
+    while i <= TOURNAMENT_SIZE-1:
         candidate = pop[random.randint(0, len(pop)-1)]
         selected.append(candidate)
         i += 1
-        # infinite loop
 
     selected.sort()
     winner = selected[0]
@@ -124,6 +123,8 @@ def random_point_mutate(candidate):
     else:
         candidate.f += MUTATE_RATE
         candidate.list[6] += MUTATE_RATE
+
+    calculate_fitness(candidate)
 
     return candidate
 
@@ -160,29 +161,29 @@ def main():
             if mutate_draw == 1:
                 new_cand_1 = random_point_mutate(cand_1)
                 new_cand_2 = random_point_mutate(cand_2)
-            elif mutate_draw == 2:
+            else:
                 new_cand_1 = crossover(cand_1, cand_2)
                 new_cand_2 = crossover(cand_1, cand_2)
 
-            print 'mutated'
-
-            calculate_fitness(new_cand_1)
-            calculate_fitness(new_cand_2)
-
             new_population.append(new_cand_1)
             new_population.append(new_cand_2)
+            # BUG HERE!!!!!
+            # new_population has 2X the amount of candidates appended to it... this is where the error comes from
+
+            i += 1
 
         new_population.sort()
 
         population = new_population
 
-        print(str(population[0] + population[1] + population[2]))
+        # LIST GETTING DOUBLED
+
+        best = population[0]
+        worst = population[len(population)-1]
+
+        print (best.fitness, worst.fitness, len(population))
 
         gen_count -= 1
 
 
 main()
-
-
-# pick two candidates at using proportional fitness / tournament
-# crossover/mutate
