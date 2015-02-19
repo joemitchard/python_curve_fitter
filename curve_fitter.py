@@ -147,9 +147,8 @@ def main():
     # Main Loop
     while gen_count <= GENERATIONS:
         new_population = []
-        i = 0
 
-        while i <= len(population):
+        for i in range(INITIAL_POPULATION_SIZE/2):
             cand_1 = tournament_selection(population)
             cand_2 = tournament_selection(population)
 
@@ -167,12 +166,8 @@ def main():
 
             new_population.append(new_cand_1)
             new_population.append(new_cand_2)
-            # BUG HERE!!!!!
-            # new_population has 2X the amount of candidates appended to it... this is where the error comes from
 
-            i += 1
-
-        new_population.sort()
+        new_population.sort(reverse=True)
 
         population = new_population
 
@@ -184,6 +179,5 @@ def main():
         print (best.fitness, worst.fitness, len(population))
 
         gen_count -= 1
-
 
 main()
