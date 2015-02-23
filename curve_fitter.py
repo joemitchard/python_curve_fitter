@@ -31,29 +31,26 @@ INITIAL_POPULATION_SIZE = 1000
 GENERATIONS = 100
 TOURNAMENT_SIZE = 4
 
-MUTATE_RATE = 1
+MUTATE_RATE = 0.50
 
 
 class Candidate:
-    def __init__(self):
-        self.a = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
-        self.b = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
-        self.c = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
-        self.d = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
-        self.e = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
-        self.f = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
-        self.fitness = calculate_fitness(self)
-        self.list = [self.fitness, self.a, self.b, self.c, self.d, self.e, self.f]
-
-
-class MutatedCandidate:
-    def __init__(self, a, b, c, d, e, f):
-        self.a = a
-        self.b = b
-        self.c = c
-        self.d = d
-        self.e = e
-        self.f = f
+    def __init__(self, a=None, b=None, c=None, d=None, e=None, f=None):
+        if a is not None:
+            self.a = a
+            self.b = b
+            self.c = c
+            self.d = d
+            self.e = e
+            self.f = f
+        else:
+            self.a = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
+            self.b = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
+            self.c = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
+            self.d = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
+            self.e = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
+            # self.f = random.uniform(MIN_RAND_RANGE, MAX_RAND_RANGE)
+            self.f = 0
         self.fitness = calculate_fitness(self)
         self.list = [self.fitness, self.a, self.b, self.c, self.d, self.e, self.f]
 
@@ -104,25 +101,46 @@ def tournament_selection(pop):
 # mutation
 def random_point_mutate(candidate):
     # picks a number between 1 and 6
+    operator = random.randint(0, 1)
     point = random.randint(1, 6)
-    if point == 1:
-        candidate.a += MUTATE_RATE
-        candidate.list[1] += MUTATE_RATE
-    elif point == 2:
-        candidate.b += MUTATE_RATE
-        candidate.list[2] += MUTATE_RATE
-    elif point == 3:
-        candidate.c += MUTATE_RATE
-        candidate.list[3] += MUTATE_RATE
-    elif point == 4:
-        candidate.d += MUTATE_RATE
-        candidate.list[4] += MUTATE_RATE
-    elif point == 5:
-        candidate.e += MUTATE_RATE
-        candidate.list[5] += MUTATE_RATE
+    if operator == 0:
+        if point == 1:
+            candidate.a -= MUTATE_RATE
+            candidate.list[1] -= MUTATE_RATE
+        elif point == 2:
+            candidate.b -= MUTATE_RATE
+            candidate.list[2] -= MUTATE_RATE
+        elif point == 3:
+            candidate.c -= MUTATE_RATE
+            candidate.list[3] -= MUTATE_RATE
+        elif point == 4:
+            candidate.d -= MUTATE_RATE
+            candidate.list[4] -= MUTATE_RATE
+        elif point == 5:
+            candidate.e -= MUTATE_RATE
+            candidate.list[5] -= MUTATE_RATE
+        else:
+            candidate.f -= MUTATE_RATE
+            candidate.list[6] -= MUTATE_RATE
     else:
-        candidate.f += MUTATE_RATE
-        candidate.list[6] += MUTATE_RATE
+        if point == 1:
+            candidate.a += MUTATE_RATE
+            candidate.list[1] += MUTATE_RATE
+        elif point == 2:
+            candidate.b += MUTATE_RATE
+            candidate.list[2] += MUTATE_RATE
+        elif point == 3:
+            candidate.c += MUTATE_RATE
+            candidate.list[3] += MUTATE_RATE
+        elif point == 4:
+            candidate.d += MUTATE_RATE
+            candidate.list[4] += MUTATE_RATE
+        elif point == 5:
+            candidate.e += MUTATE_RATE
+            candidate.list[5] += MUTATE_RATE
+        else:
+            candidate.f += MUTATE_RATE
+            candidate.list[6] += MUTATE_RATE
 
     calculate_fitness(candidate)
 
@@ -131,8 +149,8 @@ def random_point_mutate(candidate):
 
 def crossover(candidate_a, candidate_b):
     # pick crossover point and do this intelligently
-    crossovered_candidate = MutatedCandidate(candidate_a.list[1], candidate_a.list[2], candidate_a.list[3],
-                                             candidate_b.list[4], candidate_b.list[5], candidate_b.list[6])
+    crossovered_candidate = Candidate(candidate_a.list[1], candidate_a.list[2], candidate_a.list[3],
+                                      candidate_b.list[4], candidate_b.list[5], candidate_b.list[6])
 
     return crossovered_candidate
 
@@ -155,21 +173,24 @@ def main():
             # mutate the candidates
             # add them to the new population
 
-            # needs a more intelligent way to draw mutate chance
-            mutate_draw = random.randint(1, 2)
-            if mutate_draw == 1:
-                new_cand_1 = random_point_mutate(cand_1)
-                new_cand_2 = random_point_mutate(cand_2)
+            # after the first generation, if fittest should be kept
+            if gen_count != GENERATIONS and cand_1 == population[0] or population[1]:
+                # needs a more intelligent way to draw mutate chance
+                mutate_draw = random.randint(1, 2)
+                if mutate_draw == 1:
+                    new_cand_1 = random_point_mutate(cand_1)
+                    new_cand_2 = random_point_mutate(cand_2)
+                else:
+                    new_cand_1 = crossover(cand_1, cand_2)
+                    new_cand_2 = crossover(cand_1, cand_2)
+
+                new_population.append(new_cand_1)
+                new_population.append(new_cand_2)
             else:
-                new_cand_1 = crossover(cand_1, cand_2)
-                new_cand_2 = crossover(cand_1, cand_2)
+                new_population.append(cand_1)
+                new_population.append(cand_2)
 
-            new_population.append(new_cand_1)
-            new_population.append(new_cand_2)
-
-        new_population.sort(reverse=True)
-
-        population = new_population
+        population = sorted(new_population, key=lambda candidate: candidate.fitness, reverse=True)
 
         # LIST GETTING DOUBLED
 
